@@ -17,13 +17,29 @@ Ao final, gera um gráfico comparando o desempenho de BPSK e QPSK em diferentes 
 
 ## Como rodar
 
-Primeiro, instale as dependências:
+Primeiro, crie um ambiente virtual (recomendado):
+
+```bash
+python -m venv .venv
+```
+
+Ative o ambiente virtual:
+
+```bash
+# Linux/macOS:
+source .venv/bin/activate
+
+# Windows:
+.venv\Scripts\activate
+```
+
+Depois, instale as dependências:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Depois, execute:
+E execute:
 
 ```bash
 python -m src.main
