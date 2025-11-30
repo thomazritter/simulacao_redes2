@@ -1,8 +1,8 @@
-
 import numpy as np
+from numpy.typing import NDArray
 
 
-def add_awgn(signal: np.ndarray, snr_db: float) -> np.ndarray:
+def add_awgn(sinal_entrada: NDArray[np.complex128], snr_db: float, ruido: NDArray[np.complex128]) -> NDArray[np.complex128]:
     """
     Adiciona ruído AWGN (Additive White Gaussian Noise) a um sinal.
     
@@ -25,21 +25,19 @@ def add_awgn(signal: np.ndarray, snr_db: float) -> np.ndarray:
     Retorna:
         Sinal original com ruído adicionado
     """
-    # Garantir que o sinal seja um array numpy
-    sinal_entrada = np.asarray(signal)
-    
     # Converter SNR de decibéis para escala linear
     # SNR_linear = 10^(SNR_dB / 10)
-    snr_linear = 10.0 ** (snr_db / 10.0)
+    snr_linear: np.float64 = 10.0 ** (snr_db / 10.0)
 
     # Calcular potência média do sinal
     # Para sinais complexos: |sinal|^2 = real^2 + imag^2
     # Para sinais reais: |sinal|^2 = sinal^2
-    potencia_sinal = np.mean(np.abs(sinal_entrada) ** 2)
+    potencia_sinal: np.float64 = np.mean(np.power(np.abs(sinal_entrada, dtype=np.float64), 2, dtype=np.float64), dtype=np.float64)
     
     # Caso especial: sinal com potência zero (sinal nulo)
     if potencia_sinal == 0:
         # Retornar sinal sem ruído (não faz sentido adicionar ruído a sinal nulo)
+        ## eh? ele não faz nada dai?
         tipo_ruido = np.complex128 if np.iscomplexobj(sinal_entrada) else np.float64
         ruido_zero = np.zeros_like(sinal_entrada, dtype=tipo_ruido)
         return sinal_entrada + ruido_zero
@@ -49,31 +47,19 @@ def add_awgn(signal: np.ndarray, snr_db: float) -> np.ndarray:
     potencia_ruido = potencia_sinal / snr_linear
 
     # Gerar ruído gaussiano com a potência calculada
-    if np.iscomplexobj(sinal_entrada):
-        # Para sinais complexos: ruído tem parte real e imaginária independentes
-        # Cada parte tem metade da potência total
-        desvio_padrao_ruido = np.sqrt(potencia_ruido / 2.0)
-        # Gerar ruído gaussiano complexo
-        ruido_real = np.random.randn(*sinal_entrada.shape)
-        ruido_imag = np.random.randn(*sinal_entrada.shape)
-        ruido = desvio_padrao_ruido * (ruido_real + 1j * ruido_imag)
-    else:
-        # Para sinais reais: ruído é apenas parte real
-        desvio_padrao_ruido = np.sqrt(potencia_ruido)
-        # Gerar ruído gaussiano real
-        ruido = desvio_padrao_ruido * np.random.randn(*sinal_entrada.shape)
+    # Para sinais complexos: ruído tem parte real e imaginária independentes
+    # Cada parte tem metade da potência total
+    desvio_padrao_ruido: np.complex128 = np.sqrt(np.complex128(potencia_ruido / 2.0), dtype=np.complex128)
 
     # Adicionar ruído ao sinal original
-    sinal_com_ruido = sinal_entrada + ruido
+    sinal_com_ruido = sinal_entrada + ruido[:sinal_entrada.shape[0]] * desvio_padrao_ruido
 
     # Mostrar efeito do ruído AWGN
     amostra = min(8, len(sinal_entrada))
-    if np.iscomplexobj(sinal_entrada):
-        antes_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_entrada[:amostra])
-        depois_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_com_ruido[:amostra])
-    else:
-        antes_str = ' '.join(f'{s:+.2f}' for s in sinal_entrada[:amostra])
-        depois_str = ' '.join(f'{s:+.2f}' for s in sinal_com_ruido[:amostra])
+
+    antes_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_entrada[:amostra])
+    depois_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_com_ruido[:amostra])
+
     if len(sinal_entrada) > amostra:
         antes_str += "..."
         depois_str += "..."

@@ -1,6 +1,7 @@
 
 from typing import Tuple
 import numpy as np
+from numpy.typing import NDArray
 
 
 def pulse_shape(symbols: np.ndarray, samples_per_symbol: int, rolloff: float = 0.35) -> np.ndarray:
@@ -217,7 +218,7 @@ def remove_carrier(signal: np.ndarray, fc: float, fs: float, t_start: float = 0.
     return simbolos_demodulados
 
 
-def bpsk_modulate(bits: np.ndarray) -> np.ndarray:
+def bpsk_modulate(bits: NDArray[np.float64]) -> NDArray[np.complex128]:
     """
     Modula bits usando BPSK (Binary Phase Shift Keying).
     
@@ -238,32 +239,27 @@ def bpsk_modulate(bits: np.ndarray) -> np.ndarray:
     Retorna:
         Array numpy com símbolos modulados (-1 ou +1)
     """
-    # Garantir que bits seja um array numpy
-    bits_entrada = np.asarray(bits, dtype=np.uint8)
-    
-    # Validar formato
-    if bits_entrada.ndim != 1:
-        raise ValueError("bits deve ser um vetor 1D")
-    
     # Aplicar mapeamento BPSK:
     # Bit 0 -> -1: 2*0 - 1 = -1
     # Bit 1 -> +1: 2*1 - 1 = +1
-    simbolos_modulados = 2.0 * bits_entrada.astype(np.float64) - 1.0
+    simbolos_modulados = 2.0 * bits.astype(np.complex128) - 1.0
     
     # Mostrar conversão bits → símbolos BPSK
-    amostra = min(16, len(bits_entrada))
-    bits_str = ''.join(str(b) for b in bits_entrada[:amostra])
+    amostra = min(16, len(bits))
+    bits_str = ''.join(str(b) for b in bits[:amostra])
     simbolos_str = ' '.join(f'{s:+.1f}' for s in simbolos_modulados[:amostra])
-    if len(bits_entrada) > amostra:
+    if len(bits) > amostra:
         bits_str += "..."
         simbolos_str += "..."
+
     print(f"  [3. MANCHESTER → MODULAÇÃO BPSK]")
-    print(f"     Bits:    [{bits_str}] (tamanho: {len(bits_entrada)})")
+    print(f"     Bits:    [{bits_str}] (tamanho: {len(bits)})")
     print(f"     Símbolos: [{simbolos_str}] (tamanho: {len(simbolos_modulados)})")
     
     return simbolos_modulados
 
 
+# Clean!
 def bpsk_demodulate(symbols: np.ndarray) -> np.ndarray:
     """
     Demodula símbolos BPSK de volta para bits.

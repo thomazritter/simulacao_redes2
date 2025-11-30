@@ -194,6 +194,7 @@ def manchester_decode(encoded: np.ndarray) -> np.ndarray:
 
     # Extrair primeiro e segundo bit de cada par
     # Posições pares: primeiro bit de cada par
+    ## pode ser util para saber a quantidade de bits inválidos
     primeiro_bit_cada_par = bits_codificados[0::2]
     # Posições ímpares: segundo bit de cada par
     segundo_bit_cada_par = bits_codificados[1::2]
