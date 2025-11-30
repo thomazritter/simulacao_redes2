@@ -17,7 +17,7 @@ Ao final, gera um gráfico comparando o desempenho de BPSK e QPSK em diferentes 
 
 ## Como rodar
 
-Primeiro, crie um ambiente virtual (recomendado):
+Primeiro, crie um ambiente virtual (recomendado - talvez voce precise utilizar python3 nesse comando):
 
 ```bash
 python -m venv .venv
