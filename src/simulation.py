@@ -140,10 +140,7 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         # PASSO 5: Demodulação BPSK
         # Converte símbolos recebidos de volta para bits
         # Decisão: símbolo >= 0 -> bit 1, símbolo < 0 -> bit 0
-        ## WHAT ele só descarta a parte imaginária??? wtf!
         # Para BPSK, usar apenas parte real se for complexo (após remoção de portadora)
-        if np.iscomplexobj(simbolos_recebidos):
-            simbolos_recebidos = np.real(simbolos_recebidos)
         bits_demodulados = bpsk_demodulate(simbolos_recebidos)
         
         # PASSO 6: Decodificação (se Manchester foi usado)
