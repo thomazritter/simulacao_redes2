@@ -53,26 +53,13 @@ Os resultados aparecem na pasta `output/`:
 
 O programa mostra no console cada etapa do processo:
 
-1. Conversão do texto para bits
-2. Aplicação da codificação Manchester
-3. Modulação (BPSK ou QPSK)
-4. Adição de ruído no canal
-5. Demodulação
-6. Decodificação Manchester
-7. Cálculo do BER
-
 Para cada valor de SNR testado, você vê quantos erros ocorreram e como ficou a mensagem recebida (mesmo que com erros).
+
+Resultados obtidos pelo grupo ja estao nas pastas `output`.
 
 ## Personalizar
 
-Para mudar a mensagem ou os valores de SNR, edite a função `run_full_simulation()` no arquivo `src/simulation.py`:
-
-```python
-run_full_simulation(
-    message="Sua mensagem aqui",
-    snr_db_values=[0, 2, 4, 6, 8, 10, 12]
-)
-```
+Para mudar a mensagem ou os valores de SNR, edite a função `main.py` na pasta `src`:
 
 ## Estrutura do código
 
@@ -81,15 +68,3 @@ run_full_simulation(
 - `src/modulation.py` - modulação BPSK e QPSK
 - `src/channel.py` - adiciona ruído AWGN
 - `src/simulation.py` - orquestra tudo e calcula o BER
-
-## Testes
-
-Para rodar os testes:
-
-```bash
-pytest
-```
-
-## Sobre a portadora
-
-O código inclui suporte para modulação passa-banda (com portadora), mas está desativado por padrão. Não é necessário para demonstrar os conceitos principais do trabalho. Se quiser ativar, mude `ENABLE_CARRIER_ANALYSIS = True` no arquivo `src/simulation.py`.
