@@ -36,8 +36,6 @@ def add_awgn(sinal_entrada: NDArray[np.complex128], snr_db: float, ruido: NDArra
     
     # Caso especial: sinal com potência zero (sinal nulo)
     if potencia_sinal == 0:
-        # Retornar sinal sem ruído (não faz sentido adicionar ruído a sinal nulo)
-        ## eh? ele não faz nada dai?
         tipo_ruido = np.complex128 if np.iscomplexobj(sinal_entrada) else np.float64
         ruido_zero = np.zeros_like(sinal_entrada, dtype=tipo_ruido)
         return sinal_entrada + ruido_zero
@@ -53,18 +51,5 @@ def add_awgn(sinal_entrada: NDArray[np.complex128], snr_db: float, ruido: NDArra
 
     # Adicionar ruído ao sinal original
     sinal_com_ruido = sinal_entrada + ruido[:sinal_entrada.shape[0]] * desvio_padrao_ruido
-
-    # Mostrar efeito do ruído AWGN
-    amostra = min(8, len(sinal_entrada))
-
-    antes_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_entrada[:amostra])
-    depois_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in sinal_com_ruido[:amostra])
-
-    if len(sinal_entrada) > amostra:
-        antes_str += "..."
-        depois_str += "..."
-    print(f"  [4. CANAL AWGN (SNR = {snr_db:.1f} dB)]")
-    print(f"     Antes:  [{antes_str}] (potência: {potencia_sinal:.4f})")
-    print(f"     Depois: [{depois_str}] (potência ruído: {potencia_ruido:.4f})")
 
     return sinal_com_ruido

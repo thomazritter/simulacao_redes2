@@ -98,22 +98,7 @@ def add_carrier(symbols: np.ndarray, fc: float, fs: float, t_start: float = 0.0,
         # BPSK: apenas componente I
         # Modulação passa-banda: símbolo * cos
         sinal_passabanda = simbolos_formatados * portadora_cos
-    
-    # Mostrar efeito da portadora
-    amostra = min(8, len(simbolos))
-    if np.iscomplexobj(simbolos):
-        simbolos_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in simbolos[:amostra])
-    else:
-        simbolos_str = ' '.join(f'{s:+.2f}' for s in simbolos[:amostra])
-    sinal_str = ' '.join(f'{s:+.2f}' for s in sinal_passabanda[:min(16, len(sinal_passabanda))])
-    if len(simbolos) > amostra:
-        simbolos_str += "..."
-    if len(sinal_passabanda) > 16:
-        sinal_str += "..."
-    print(f"  [3.5. ADIÇÃO DE PORTADORA (fc={fc:.1f} Hz, fs={fs:.1f})]")
-    print(f"     Símbolos banda base: [{simbolos_str}] (tamanho: {len(simbolos)})")
-    print(f"     Sinal passa-banda: [{sinal_str}] (tamanho: {len(sinal_passabanda)})")
-    
+
     return sinal_passabanda
 
 
@@ -201,20 +186,7 @@ def remove_carrier(signal: np.ndarray, fc: float, fs: float, t_start: float = 0.
     
     # Reconstruir símbolos complexos (ou reais para BPSK)
     simbolos_demodulados = simbolos_i + 1j * simbolos_q
-    
-    # Mostrar efeito da remoção de portadora
-    amostra = min(8, len(simbolos_demodulados))
-    simbolos_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in simbolos_demodulados[:amostra])
-    if len(simbolos_demodulados) > amostra:
-        simbolos_str += "..."
-    amostra_sinal = min(16, len(sinal))
-    sinal_str = ' '.join(f'{s:+.2f}' for s in sinal[:amostra_sinal])
-    if len(sinal) > amostra_sinal:
-        sinal_str += "..."
-    print(f"  [5.5. REMOÇÃO DE PORTADORA (fc={fc:.1f} Hz)]")
-    print(f"     Sinal passa-banda: [{sinal_str}] (tamanho: {len(sinal)})")
-    print(f"     Símbolos banda base: [{simbolos_str}] (tamanho: {len(simbolos_demodulados)})")
-    
+
     return simbolos_demodulados
 
 
@@ -243,23 +215,10 @@ def bpsk_modulate(bits: NDArray[np.float64]) -> NDArray[np.complex128]:
     # Bit 0 -> -1: 2*0 - 1 = -1
     # Bit 1 -> +1: 2*1 - 1 = +1
     simbolos_modulados = 2.0 * bits.astype(np.complex128) - 1.0
-    
-    # Mostrar conversão bits → símbolos BPSK
-    amostra = min(16, len(bits))
-    bits_str = ''.join(str(b) for b in bits[:amostra])
-    simbolos_str = ' '.join(f'{s:+.1f}' for s in simbolos_modulados[:amostra])
-    if len(bits) > amostra:
-        bits_str += "..."
-        simbolos_str += "..."
 
-    print(f"  [3. MANCHESTER → MODULAÇÃO BPSK]")
-    print(f"     Bits:    [{bits_str}] (tamanho: {len(bits)})")
-    print(f"     Símbolos: [{simbolos_str}] (tamanho: {len(simbolos_modulados)})")
-    
     return simbolos_modulados
 
 
-# Clean!
 def bpsk_demodulate(symbols: np.ndarray) -> np.ndarray:
     """
     Demodula símbolos BPSK de volta para bits.
@@ -283,18 +242,7 @@ def bpsk_demodulate(symbols: np.ndarray) -> np.ndarray:
     # Se símbolo >= 0: decidir por bit 1
     # Se símbolo < 0: decidir por bit 0
     bits_demodulados = (simbolos_entrada >= 0).astype(np.uint8)
-    
-    # Mostrar conversão símbolos → bits (demodulação BPSK)
-    amostra = min(16, len(simbolos_entrada))
-    simbolos_str = ' '.join(f'{s:+.2f}' for s in simbolos_entrada[:amostra])
-    bits_str = ''.join(str(b) for b in bits_demodulados[:amostra])
-    if len(simbolos_entrada) > amostra:
-        simbolos_str += "..."
-        bits_str += "..."
-    print(f"  [5. DEMODULAÇÃO BPSK → MANCHESTER]")
-    print(f"     Símbolos: [{simbolos_str}] (tamanho: {len(simbolos_entrada)})")
-    print(f"     Bits:    [{bits_str}] (tamanho: {len(bits_demodulados)})")
-    
+
     return bits_demodulados
 
 
@@ -366,18 +314,7 @@ def qpsk_modulate(bits: np.ndarray) -> Tuple[np.ndarray, int]:
     # Cada símbolo tem magnitude sqrt(2), então dividir por sqrt(2) normaliza
     fator_normalizacao = np.sqrt(2.0)
     simbolos_modulados /= fator_normalizacao
-    
-    # Mostrar conversão bits → símbolos QPSK
-    amostra = min(8, len(pares_de_bits))
-    bits_str = ' '.join(f'{b0}{b1}' for b0, b1 in pares_de_bits[:amostra])
-    simbolos_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in simbolos_modulados[:amostra])
-    if len(pares_de_bits) > amostra:
-        bits_str += "..."
-        simbolos_str += "..."
-    print(f"  [3. MANCHESTER → MODULAÇÃO QPSK]")
-    print(f"     Bits (pares): [{bits_str}] (tamanho: {len(bits_entrada)})")
-    print(f"     Símbolos: [{simbolos_str}] (tamanho: {len(simbolos_modulados)})")
-    
+
     return simbolos_modulados, padding_bits
 
 
@@ -436,20 +373,8 @@ def qpsk_demodulate(symbols: np.ndarray, padding: int = 0) -> np.ndarray:
     # Remover bits de preenchimento se foram adicionados durante modulação
     if padding > 0:
         bits_demodulados = bits_demodulados[:-padding]
-    
+
     # Converter lista para array numpy
     bits_array = np.array(bits_demodulados, dtype=np.uint8)
-    
-    # Mostrar conversão símbolos → bits (demodulação QPSK)
-    amostra = min(8, len(simbolos_desnormalizados))
-    simbolos_str = ' '.join(f'{s.real:+.2f}{s.imag:+.2f}j' for s in simbolos_desnormalizados[:amostra])
-    bits_str = ''.join(str(b) for b in bits_array[:min(16, len(bits_array))])
-    if len(simbolos_desnormalizados) > amostra:
-        simbolos_str += "..."
-    if len(bits_array) > 16:
-        bits_str += "..."
-    print(f"  [5. DEMODULAÇÃO QPSK → MANCHESTER]")
-    print(f"     Símbolos: [{simbolos_str}] (tamanho: {len(simbolos_desnormalizados)})")
-    print(f"     Bits:    [{bits_str}] (tamanho: {len(bits_array)})")
-    
+
     return bits_array

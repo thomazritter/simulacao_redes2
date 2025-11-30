@@ -82,17 +82,13 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
     
     # Aplicar codificação Manchester se solicitado
     if use_manchester:
-        ## Imediatamente sobreescrita...
         bits_para_transmitir = manchester_encode(bits_para_transmitir)
-        print(f"  [BPSK] Bits originais: {len(bits_para_transmitir)}, após Manchester: {len(bits_para_transmitir)}")
 
     # Lista para armazenar resultados de BER
     resultados_ber = np.ndarray(bits.shape, np.float64)
     
     # Para cada valor de SNR, realizar simulação
     for i, snr_eb_n0_db in enumerate(snr_db_values):
-        print(f"\n  --- Simulando BPSK com SNR = {snr_eb_n0_db:.1f} dB ---")
-        
         # PASSO 2: Modulação BPSK
         # Converte bits (0/1) em símbolos (-1/+1)
         simbolos_banda_base = bpsk_modulate(bits_para_transmitir)
@@ -100,7 +96,6 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         # PASSO 2.5: Adicionar portadora (opcional)
         # Em sistemas reais: fc >> taxa_de_símbolos (portadora muito maior)
         # Aplica pulse shaping para tornar mais realista
-        ## Usar a portadora é opcional??
         if use_carrier:
             sinal_transmitido = add_carrier(simbolos_banda_base, fc, fs, use_pulse_shaping=True)
         else:
@@ -121,8 +116,6 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         else:
             # Sem Manchester: 1 bit = 1 símbolo, sem ajuste necessário
             snr_es_n0_db = snr_eb_n0_db
-        
-        ## nessa parte ele começa a considerar a possibilidade do sinal ter magicamente adquirido um componente complexo
 
         # PASSO 4: Simular canal com ruído AWGN
         # Adiciona ruído gaussiano branco ao sinal transmitido
@@ -131,7 +124,6 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         # PASSO 4.5: Remover portadora (se foi adicionada)
         # Em sistemas reais, requer sincronização precisa (PLL - Phase Locked Loop)
         # Aplica filtro passa-baixa para remover componentes de alta frequência
-        ## Novamente, tem algum caso sem portadora?
         if use_carrier:
             simbolos_recebidos = remove_carrier(sinal_com_ruido, fc, fs, use_filtering=True)
         else:
@@ -153,39 +145,6 @@ def simulate_ber_bpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         # PASSO 7: Calcular BER comparando bits recebidos com bits originais
         ber, numero_erros, total_bits = bit_error_rate(bits, bits_recebidos)
         resultados_ber[i] = ber
-        
-        # Mostrar comparação para cálculo de BER
-        amostra = min(16, len(bits))
-        orig_str = ''.join(str(b) for b in bits[:amostra])
-        rec_str = ''.join(str(b) for b in bits_recebidos[:amostra])
-        if len(bits) > amostra:
-            orig_str += "..."
-            rec_str += "..."
-        print(f"  [7. CÁLCULO BER]")
-        print(f"     Bits originais: [{orig_str}] (tamanho: {len(bits)})")
-        print(f"     Bits recebidos: [{rec_str}] (tamanho: {len(bits_recebidos)})")
-        print(f"     Erros: {numero_erros} de {total_bits} bits → BER = {ber:.6f} ({ber*100:.2f}%)")
-        
-        # Tentar decodificar mensagem recebida (mesmo com erros)
-        try:
-            mensagem_recebida = bits_to_text(bits_recebidos)
-            # Mostrar apenas primeiros caracteres se muito longa
-            ## why?
-            if len(mensagem_recebida) > 50:
-                mensagem_display = mensagem_recebida[:50] + "..."
-            else:
-                mensagem_display = mensagem_recebida
-        except:
-            mensagem_display = "[Erro ao decodificar - muitos erros]"
-        
-        # Exibir resultado
-        percentual_erro = ber * 100
-        if numero_erros == 0:
-            print(f"  [BPSK] SNR = {snr_eb_n0_db:4.1f} dB → {numero_erros} erros em {total_bits} bits ({percentual_erro:.2f}%) ✓ PERFEITO!")
-            print(f"         Mensagem recebida: '{mensagem_display}'")
-        else:
-            print(f"  [BPSK] SNR = {snr_eb_n0_db:4.1f} dB → {numero_erros} erros em {total_bits} bits ({percentual_erro:.2f}%)")
-            print(f"         Mensagem recebida: '{mensagem_display}'")
     
     return resultados_ber
 
@@ -223,15 +182,12 @@ def simulate_ber_qpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
     # Aplicar codificação Manchester se solicitado
     if use_manchester:
         bits_para_transmitir = manchester_encode(bits_originais)
-        print(f"  [QPSK] Bits originais: {len(bits_originais)}, após Manchester: {len(bits_para_transmitir)}")
 
     # Lista para armazenar resultados de BER
     resultados_ber = np.ndarray(snr_db_values.shape, np.float64)
     
     # Para cada valor de SNR, realizar simulação
     for i, snr_eb_n0_db in enumerate(snr_db_values):
-        print(f"\n  --- Simulando QPSK com SNR = {snr_eb_n0_db:.1f} dB ---")
-        
         # PASSO 2: Modulação QPSK
         # Converte bits em símbolos QPSK (2 bits por símbolo)
         # Retorna também informação sobre padding se necessário
@@ -289,38 +245,6 @@ def simulate_ber_qpsk(bits: NDArray[np.float64], snr_db_values: NDArray[np.float
         # PASSO 7: Calcular BER comparando bits recebidos com bits originais
         ber, numero_erros, total_bits = bit_error_rate(bits_originais, bits_recebidos)
         resultados_ber[i] = ber
-        
-        # Mostrar comparação para cálculo de BER
-        amostra = min(16, len(bits_originais))
-        orig_str = ''.join(str(b) for b in bits_originais[:amostra])
-        rec_str = ''.join(str(b) for b in bits_recebidos[:amostra])
-        if len(bits_originais) > amostra:
-            orig_str += "..."
-            rec_str += "..."
-        print(f"  [7. CÁLCULO BER]")
-        print(f"     Bits originais: [{orig_str}] (tamanho: {len(bits_originais)})")
-        print(f"     Bits recebidos: [{rec_str}] (tamanho: {len(bits_recebidos)})")
-        print(f"     Erros: {numero_erros} de {total_bits} bits → BER = {ber:.6f} ({ber*100:.2f}%)")
-        
-        # Tentar decodificar mensagem recebida (mesmo com erros)
-        try:
-            mensagem_recebida = bits_to_text(bits_recebidos)
-            # Mostrar apenas primeiros caracteres se muito longa
-            if len(mensagem_recebida) > 50:
-                mensagem_display = mensagem_recebida[:50] + "..."
-            else:
-                mensagem_display = mensagem_recebida
-        except:
-            mensagem_display = "[Erro ao decodificar - muitos erros]"
-        
-        # Exibir resultado
-        percentual_erro = ber * 100
-        if numero_erros == 0:
-            print(f"  [QPSK] SNR = {snr_eb_n0_db:4.1f} dB → {numero_erros} erros em {total_bits} bits ({percentual_erro:.2f}%) ✓ PERFEITO!")
-            print(f"         Mensagem recebida: '{mensagem_display}'")
-        else:
-            print(f"  [QPSK] SNR = {snr_eb_n0_db:4.1f} dB → {numero_erros} erros em {total_bits} bits ({percentual_erro:.2f}%)")
-            print(f"         Mensagem recebida: '{mensagem_display}'")
     
     return resultados_ber
 
@@ -353,70 +277,32 @@ def run_full_simulation(
         output_dir = os.path.join(diretorio_base, "output")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Cabeçalho da simulação
     print("=" * 60)
     print("Simulação de Comunicação Digital")
     print("=" * 60)
-    print(f"Mensagem: '{message}'")
+    print(f"Mensagem: '{message[:50]}{'...' if len(message) > 50 else ''}'")
+    print(f"Iterações: {iterations}")
+    print(f"Valores de SNR: {snr_values} dB")
+    print("=" * 60)
 
     bpsk_bers_snrs = np.ndarray((len(snr_values), iterations))
-    qpsk_bers_snrs = np.ndarray((len(snr_values), iterations)) 
+    qpsk_bers_snrs = np.ndarray((len(snr_values), iterations))
 
     for iteration in range(iterations):
-    
-        # Converter mensagem de texto em bits
         bits_originais = text_to_bits(message)
 
         ruido_real = np.random.randn(len(message) * 1024)
         ruido_imag = np.random.randn(len(message) * 1024)
         ruido = ruido_real + np.complex128(1j) * ruido_imag
 
-        # Já printamos o tamanho do vetor de bits no fim da chamada de função anterior
-        print(f"Bits originais: {len(bits_originais)} bits")
-        print(f"Valores de SNR (Eb/N0): {snr_values} dB")
-        print()
-        
-        # Explicar conceitos importantes
-        print("BER = Bit Error Rate (Taxa de Erro de Bits)")
-        print("     = número de bits errados / total de bits")
-        print("     = 0.0 = sem erros, 1.0 = todos errados")
-        print()
-        print("SNR = Eb/N0 (Energia por bit de informação / Densidade espectral de ruído)")
-        print("     O código converte automaticamente para Es/N0 (energia por símbolo)")
-        print("     antes de adicionar ruído ao canal")
-        print()
-
-        
-        # Simular BPSK
-        print("Simulando BPSK...")
         resultados_ber_bpsk = simulate_ber_bpsk(bits_originais, snr_values, ruido, use_manchester=True, use_carrier=False)
-        print()
-        
-        # Simular QPSK
-        print("Simulando QPSK...")
         resultados_ber_qpsk = simulate_ber_qpsk(bits_originais, snr_values, ruido, use_manchester=True, use_carrier=False)
-        print()
-        
-        # Análise com portadora (OPCIONAL - apenas se ENABLE_CARRIER_ANALYSIS = True)
-        print("=" * 60)
-        print("ANÁLISE OPCIONAL: Impacto da Portadora (Modulação Passa-Banda)")
-        print("=" * 60)
-        print("Esta análise demonstra o impacto de adicionar portadora ao sinal.")
-        print("Não é essencial para os objetivos principais do trabalho.\n")
-        
-        print()
 
-        print("\nDiferenças principais:")
-        print("1. BPSK: usa apenas cos(2πfc*t) - mais simples, menos eficiente")
-        print("2. QPSK: usa cos(2πfc*t) e sin(2πfc*t) - mais eficiente, mais complexo")
-        print("\nComparação de BER (com vs sem portadora):")
-        print(f"{'SNR (dB)':<10} {'BPSK sem':<12} {'BPSK com':<12} {'QPSK sem':<12} {'QPSK com':<12}")
-        print("-" * 60)
         for i, snr in enumerate(snr_values):
             bpsk_bers_snrs[i][iteration] = resultados_ber_bpsk[i]
             qpsk_bers_snrs[i][iteration] = resultados_ber_qpsk[i]
-        print("=" * 60)
-        print()
+
+        print(f"Iteração {iteration + 1}/{iterations} concluída")
             
     avg_ber_bpsk = np.mean(bpsk_bers_snrs, axis=1)
     avg_ber_qpsk = np.mean(qpsk_bers_snrs, axis=1)

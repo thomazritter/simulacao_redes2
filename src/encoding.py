@@ -40,16 +40,7 @@ def text_to_bits(text: str) -> np.ndarray:
     
     # Converter lista para array numpy
     bits_array = np.array(lista_bits, dtype=np.uint8)
-    
-    # Mostrar conversão texto → bits
-    amostra = min(32, len(bits_array))
-    bits_str = ''.join(str(b) for b in bits_array[:amostra])
-    if len(bits_array) > amostra:
-        bits_str += "..."
-    print(f"  [1. TEXTO → BITS]")
-    print(f"     Texto: '{text[:50]}{'...' if len(text) > 50 else ''}'")
-    print(f"     Bits:  [{bits_str}] (tamanho: {len(bits_array)} bits)")
-    
+
     return bits_array
 
 
@@ -146,20 +137,7 @@ def manchester_encode(bits: np.ndarray) -> np.ndarray:
     
     # Posições ímpares (1, 3, 5, ...): segundo bit de cada par
     bits_codificados[1::2] = bits_entrada  # Manter: 0->0, 1->1
-    
-    # Mostrar conversão bits → Manchester
-    amostra_antes = min(16, tamanho_original)
-    amostra_depois = min(32, len(bits_codificados))
-    bits_antes = ''.join(str(b) for b in bits_entrada[:amostra_antes])
-    bits_depois = ''.join(str(b) for b in bits_codificados[:amostra_depois])
-    if tamanho_original > amostra_antes:
-        bits_antes += "..."
-    if len(bits_codificados) > amostra_depois:
-        bits_depois += "..."
-    print(f"  [2. BITS → MANCHESTER]")
-    print(f"     Antes:  [{bits_antes}] (tamanho: {tamanho_original})")
-    print(f"     Depois: [{bits_depois}] (tamanho: {len(bits_codificados)})")
-    
+
     return bits_codificados
 
 
@@ -193,10 +171,7 @@ def manchester_decode(encoded: np.ndarray) -> np.ndarray:
         raise ValueError("tamanho de encoded deve ser par (cada bit codificado tem 2 bits)")
 
     # Extrair primeiro e segundo bit de cada par
-    # Posições pares: primeiro bit de cada par
-    ## pode ser util para saber a quantidade de bits inválidos
     primeiro_bit_cada_par = bits_codificados[0::2]
-    # Posições ímpares: segundo bit de cada par
     segundo_bit_cada_par = bits_codificados[1::2]
 
     # Decodificação:
@@ -209,18 +184,5 @@ def manchester_decode(encoded: np.ndarray) -> np.ndarray:
     # - Par (0,0): segundo bit = 0 -> bit original = 0 (decisão após ruído)
     # - Par (1,1): segundo bit = 1 -> bit original = 1 (decisão após ruído)
     bits_decodificados = segundo_bit_cada_par.copy()
-    
-    # Mostrar conversão Manchester → bits
-    amostra_antes = min(32, len(bits_codificados))
-    amostra_depois = min(16, len(bits_decodificados))
-    bits_antes = ''.join(str(b) for b in bits_codificados[:amostra_antes])
-    bits_depois = ''.join(str(b) for b in bits_decodificados[:amostra_depois])
-    if len(bits_codificados) > amostra_antes:
-        bits_antes += "..."
-    if len(bits_decodificados) > amostra_depois:
-        bits_depois += "..."
-    print(f"  [6. MANCHESTER → BITS]")
-    print(f"     Antes:  [{bits_antes}] (tamanho: {len(bits_codificados)})")
-    print(f"     Depois: [{bits_depois}] (tamanho: {len(bits_decodificados)})")
-    
+
     return bits_decodificados
